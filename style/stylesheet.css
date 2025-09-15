@@ -1,0 +1,96 @@
+* {
+  	box-sizing: border-box;
+	margin: 0 auto;
+	padding: 0;	
+}
+html { 
+  	color-scheme: light dark; 
+ 	--accent: light-dark(#FF3B30FF, #30D158FF);
+  	--bg: light-dark(#ffe8e8ff, #1C1C1EFF);
+  	--fg: light-dark(#1C1C1EFF, #ffe8e8ff);
+	background-color: var(--bg);
+	color: var(--fg);
+  	font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+    text-rendering: optimizeLegibility;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+ 	width: min(70ch, 100vw - 1em);
+}
+
+h2{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin-top: 0.10em;
+	margin-bottom: 0.10em;
+} 
+h3 > a {
+	display: flex;
+	flex-direction: column;
+	align-items: left;
+	margin-top: 0.10em;
+} 
+h4 {
+	display: flex;
+	justify-content: center;
+	margin-top: 1.0em;
+	margin-bottom: 1.0em;
+} 
+
+a:any-link {
+  color: var(--accent);
+}
+
+p {
+  // Help prevent overflow of long words/names/URLs
+  	word-break: break-word;
+
+  // Optional, not supported for all languages
+  	hyphens: auto;
+  	line-height: 1.5em ;
+    padding: 1rem;
+}
+
+.footer {
+  	border-top: solid;  
+}
+
+.breadcrumb { 
+	list-style: none;
+} 
+
+.breadcrumb li {
+	display: inline-block;
+} 
+
+.breadcrumb li::after {
+	content: " >  ";
+}
+
+.breadcrumb li:last-child::after {
+	content: "";
+}
+
+nav{
+	display: flex;
+	justify-content: space-around;
+}
+.bodyIndex{
+    height: 100%;
+    width: 100%;
+    display: flex;
+    position: fixed;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.indexMenu{
+	display: flex;
+	gap: 1em;
+}
+
