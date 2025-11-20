@@ -3,7 +3,7 @@
 import os
 import csv
 import datetime
-from itertools import tee, islice, chain
+from itertools import tee, islice, chain 
 import re
 import cmsc
 from operator import itemgetter
@@ -57,28 +57,42 @@ def createDictionaryForMonths():
 	monthsDictionary = {}
 
 	for blog in os.listdir(currentDirectory):
-		fileTime = splitFileName(blog)
-		year = fileTime["year"]
-		monthNumber = fileTime["monthNumber"]
-		newFile = str(fileTime["year"]) + "_" + str(fileTime["monthNumber"])
-		# add to monthDictioanry what we can deduce for the
-		# file name - like year, month number, filename, and new
-		# filename that will be created. 
-		monthDictionary = {"fileName": blog, "year": year, "monthNumber": monthNumber, "newFileName": newFile}
-		# add to the monthDictionary the month name
-		monthDictionary = identifyMonth(monthDictionary)
-		# add to the monthDictionary the page title name
-		monthDictionary["title"] = "Notes for " + str(monthDictionary["monthText"]) + " " + str(monthDictionary["year"])
-		# add to monthDictionary the bredcrumb html
-		monthDictionary = createMonthsBreadcrumb(monthDictionary)
-		# add this monthdictionary to the dictionary of all months
-		monthsDictionary[monthDictionary["fileName"]] = monthDictionary
+		if checkFileFormat(blog):
+			print ("file format passed: " + blog)
+		
+			fileTime = splitFileName(blog)
+			year = fileTime["year"]
+			monthNumber = fileTime["monthNumber"]
+			newFile = str(fileTime["year"]) + "_" + str(fileTime["monthNumber"])
+			# add to monthDictioanry what we can deduce for the
+			# file name - like year, month number, filename, and new
+			# filename that will be created. 
+			monthDictionary = {"fileName": blog, "year": year, "monthNumber": monthNumber, "newFileName": newFile}
+			# add to the monthDictionary the month name
+			monthDictionary = identifyMonth(monthDictionary)
+			# add to the monthDictionary the page title name
+			monthDictionary["title"] = "Notes for " + str(monthDictionary["monthText"]) + " " + str(monthDictionary["year"])
+			# add to monthDictionary the bredcrumb html
+			monthDictionary = createMonthsBreadcrumb(monthDictionary)
+			# add this monthdictionary to the dictionary of all months
+			monthsDictionary[monthDictionary["fileName"]] = monthDictionary
+		else:
+			print ("file format failed: " + blog)
 	# work out the future and past links for each month and add
 	# it to each entry as navigation 
 	monthsDictionary = orderedMonths(monthsDictionary)
 	# add the meta files to the monthDictionary
 	monthsDictionary = createMeta(monthsDictionary)
 	return monthsDictionary
+
+def checkFileFormat(blogFileName):
+	# checks for a pattern in the file name of:
+	#  a year range seperated by a hyphen then 1-12 for the month  
+	pattern = r"^20[0-9]{2}-([1-9]|1[0-2])$"
+	if re.match(pattern, blogFileName):
+		return True
+	else:
+		return False
 
 def splitFileName(blogFileName):
 	# split the file name on the hyphen to get year and month seperately
@@ -166,13 +180,13 @@ def createMeta(monthsDictionary):
 
 	# loop through each line of the meta.csv 
 	# if it's filename matches with the monthDictionary filename
-	# then add values of metatitle and metatags to the dictionary
+	# then add values of metatitle and metaDescription to the dictionary
 	for row in reader:
 		csvFilename = row[0]
-		metatitle = row[1]
-		metatag = row[2]
-		monthsDictionary[csvFilename]["metaTag"] = metatag
+		metatitle = row[1] 
+		metaDescription = row[2] 
 		monthsDictionary[csvFilename]["metaTitle"] = metatitle
+		monthsDictionary[csvFilename]["metaDescription"] = metaDescription
 	return monthsDictionary
 
 
@@ -318,8 +332,8 @@ def makeMonth(monthsDictionary):
 		
 		# add the locations that make up the head
 		metatitle = monthsDictionary[monthDictionary]['metaTitle']
-		metatag = monthsDictionary[monthDictionary]['metaTag']
-		monthHead = makeHead(styleSheetPathMonth, faviconPathMonth, metatag, metatitle)	
+		metaDescription = monthsDictionary[monthDictionary]['metaDescription']
+		monthHead = makeHead(styleSheetPathMonth, faviconPathMonth, metaDescription, metatitle)	
 		blogOrder.append(monthHead)
 
 		# start the body and titles
@@ -558,18 +572,25 @@ def makeDirectory(yearDictionary, monthsDictionary, rssDictionary):
 	shutil.copytree(notes, objectgroup, dirs_exist_ok=True)
 
 def createDictionaryForRSS(monthsDictionary, yearDictionary):
-	
+	items = {}
 	# first identify the most recent blog notes for adding to the rss feed 
-	# by ordering the years by most recent from the yearDescending global list 
-	# and then identifying the months within those years 
-	# by most recent (from the months Ascending within the yearDictionary)
+	# by ordering the years and months 
+	# by most recent 
 	# then batching off the first numberOfRssItems (a global variable) 
-	# we get a subset list of the filenames we will add to the rss feed as items
-	# TO BE COMPLETED AFTER GITHUB PUSH
-	latestYear = yearDescending[0]
-	print(yearDictionary[latestYear]['monthAscending'][0][0])
-#	for counter, batch in enumerate(batched(monthsDictionary, 4)):
-#		print (counter, batch)
+	# we get a subset list of the filenames we will add to 
+	# the rss feed as items
+	# get all the months in a big list in order from newest to oldest then
+	# slice off the required amount. 
+	listofTuples = []
+	for month in monthsDictionary:
+		rssYear = (monthsDictionary[month]["year"])
+		rssMonth = (monthsDictionary[month]["monthNumber"])
+		listofTuples.append((rssYear, rssMonth))
+	print (listofTuples)	
+	sortedTuplesList = sorted(listofTuples, reverse=True, key=itemgetter(0,1))	
+	result = islice(sortedTuplesList, numberOfRssItems)
+	for yearMonthTuple in result:
+		month = (str(yearMonthTuple[0]) + "-" + str(yearMonthTuple[1]))
 	# for each selected month in the monthsDictionary use the 
 	# information to make a dictionary of rss <items> 
 	# first using the year and month to add to datetime the details: 
@@ -577,8 +598,6 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 	# to get the timestamp in the format the format :
 	# threeLetterDay, twoDigitDay, threeLetterMonth, fourDigitYear, hour:minute:second GMT 
 	# for the <pubdate> of the rss 
-	items = {}
-	for month in monthsDictionary:
 		fileName = (monthsDictionary[month]['fileName'])
 		rssYear = (monthsDictionary[month]["year"])
 		rssMonth = (monthsDictionary[month]["monthNumber"])
@@ -621,9 +640,9 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 		itemLink = websiteDomain + "/" + str(rssYear) + "/" + str(rssMonth)  
 		rssItemLink = {'link': "<link>" + itemLink + "</link>"} 
 		items[fileName].update(rssItemLink)
-		# using the metaTitle for the description of the post 
+		# using the metaDescription for the description of the post 
 		# for the rss feed <description> tag
-		rssItemDescription = {'description': "<description>" + monthsDictionary[month]['metaTitle'] + "</description>"} 
+		rssItemDescription = {'description': "<description>" + monthsDictionary[month]['metaDescription'] + "</description>"} 
 		items[fileName].update(rssItemDescription)
 		# using the websiteEmail for the <author> tag of the rss feed
 		rssItemAuthor = {'author': "<author>" + websiteEmail + "</author>"} 
@@ -631,10 +650,9 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 		# using the websiteDomain for the <source> tag of the rss feed
 		rssItemSource = {'source': "<source>" + websiteDomain + "/" +  rssFileName + "</source>"} 
 		items[fileName].update(rssItemSource)
-		# using the metaTag for the <category> tag of the rss feed
-		rssItemCategory = {'category': "<category>" + monthsDictionary[month]['metaTag'] + "</category>"} 
+		# using the metaTitle for the <category> tag of the rss feed
+		rssItemCategory = {'category': "<category>" + monthsDictionary[month]['metaTitle'] + "</category>"} 
 		items[fileName].update(rssItemCategory)
-
 	return items
 
 
