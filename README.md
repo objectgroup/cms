@@ -19,7 +19,8 @@ Then you need to create the following files:
 In the same directory as the cms.py create a file called cmsc.py (standing for : content management system constants)  and add the following custom constants. 
 
 websiteName = the name of your website in quotation marks e.g. "[object][group]"
-websiteDomain = the name of your website domain in quotation marks e.g. "https://objectgroup.uk"
+websiteDomain = the name of your website in quotation marks e.g. "objectgroup.uk"
+websiteURL = the URL of your website in quotation marks e.g. "https://objectgroup.uk"
 websiteEmail = the name of your email in quotation marks
 websiteDescription = a description of the website in quotation marks e.g. "A frivolous cartoonist in East Anglia"
 websiteMetaIndex = a comma separated list of words that describe your website in quotation marks e.g. "comics, cartoon, East Anglia, Britain, England, UK"
