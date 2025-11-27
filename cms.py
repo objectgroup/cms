@@ -11,6 +11,7 @@ import shutil
 
 websiteName = cmsc.websiteName
 websiteDomain = cmsc.websiteDomain
+websiteURL = cmsc.websiteURL
 websiteEmail = cmsc.websiteEmail
 websiteDescription = cmsc.websiteDescription
 websiteMetaIndex = cmsc.websiteMetaIndex
@@ -166,10 +167,10 @@ def orderedMonths(monthsDictionary):
 			monthsDictionary[filename]["navigation"].update({nextEntry : None})
 		# there is a previous month
 		if previous != None:
-			monthsDictionary[filename]["navigation"].update({previousEntry: quote + websiteDomain + slash + str(previous[year]) + slash + str(previous[month]) + slashIndex + quote})
+			monthsDictionary[filename]["navigation"].update({previousEntry: quote + websiteURL + slash + str(previous[year]) + slash + str(previous[month]) + slashIndex + quote})
 		# there is a next month
 		if thenext != None:
-			monthsDictionary[filename]["navigation"].update({nextEntry: quote + websiteDomain + slash + str(thenext[year]) + slash + str(thenext[month]) + slashIndex + quote})
+			monthsDictionary[filename]["navigation"].update({nextEntry: quote + websiteURL + slash + str(thenext[year]) + slash + str(thenext[month]) + slashIndex + quote})
 		print("MONTHS DICTIONARY" , monthsDictionary)
 	return monthsDictionary
 
@@ -568,8 +569,7 @@ def makeDirectory(yearDictionary, monthsDictionary, rssDictionary):
 	currentDirectory = os.getcwd()
 	print ("current Directory : ", currentDirectory)
 	notes = currentDirectory + "/notes"
-	objectgroup = "../objectgroup.uk"
-	shutil.copytree(notes, objectgroup, dirs_exist_ok=True)
+	shutil.copytree(notes, "../" + websiteDomain, dirs_exist_ok=True)
 
 def createDictionaryForRSS(monthsDictionary, yearDictionary):
 	items = {}
@@ -637,7 +637,7 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 		rssItemTitle = {'title': "<title>" + blogTitle + "</title>"} 
 		items[fileName].update(rssItemTitle)
 		# constructing the url of the post for the rss feed <link> tag
-		itemLink = websiteDomain + "/" + str(rssYear) + "/" + str(rssMonth)  
+		itemLink = websiteURL + "/" + str(rssYear) + "/" + str(rssMonth)  
 		rssItemLink = {'link': "<link>" + itemLink + "</link>"} 
 		items[fileName].update(rssItemLink)
 		# using the metaDescription for the description of the post 
@@ -647,8 +647,8 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 		# using the websiteEmail for the <author> tag of the rss feed
 		rssItemAuthor = {'author': "<author>" + websiteEmail + "</author>"} 
 		items[fileName].update(rssItemAuthor)
-		# using the websiteDomain for the <source> tag of the rss feed
-		rssItemSource = {'source': "<source>" + websiteDomain + "/" +  rssFileName + "</source>"} 
+		# using the websiteURL for the <source> tag of the rss feed
+		rssItemSource = {'source': "<source>" + websiteURL + "/" +  rssFileName + "</source>"} 
 		items[fileName].update(rssItemSource)
 		# using the metaTitle for the <category> tag of the rss feed
 		rssItemCategory = {'category': "<category>" + monthsDictionary[month]['metaTitle'] + "</category>"} 
@@ -665,13 +665,13 @@ def makeRSS(yearDictionary, rssDictionary):
 	rssList.append(rssChannelStart)
 	rssTitle = '\t<title>' + websiteName + '</title>\n'
 	rssList.append(rssTitle)
-	rssLink = '\t<link>' + websiteDomain + '</link>\n'
+	rssLink = '\t<link>' + websiteURL + '</link>\n'
 	rssList.append(rssLink)
 	rssDescription = '\t<description>' + websiteDescription + '</description>\n'
 	rssList.append(rssDescription)
 	rssLanguage = '\t<language>' + websiteLanguage + '</language>\n'
 	rssList.append(rssLanguage)
-	rssImage = '\t<image>\n \t\t<title>' + websiteName + '</title>\n \t\t<link>' + websiteDomain + '</link>\n \t\t <url>' + faviconURL + '</url>\n \t\t<width>150</width>\n \t\t<height>150</height>\n\t</image>\n' 
+	rssImage = '\t<image>\n \t\t<title>' + websiteName + '</title>\n \t\t<link>' + websiteURL + '</link>\n \t\t <url>' + faviconURL + '</url>\n \t\t<width>150</width>\n \t\t<height>150</height>\n\t</image>\n' 
 	rssList.append(rssImage)
 
 	latestYear = yearDescending[0]
