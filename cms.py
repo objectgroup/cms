@@ -315,14 +315,12 @@ def orderedYears(yearsDictionary):
 
 def makeMonth(monthsDictionary):
 
-	bodyStart = '<header><h1>' + websiteName + '</h1><h2>Notes</h2></header>'	
 
 	breadcrumbStart= '<nav><ol class="breadcrumb"><li><a href="../../index.html">home</a></li><li><a href="../index.html">'
 	breadcrumbMiddle = ' notes</a></li><li>'
 	breadcrumbEnd = '</li></ol></nav>'
 	
-	titleStart = '<main><article><h3>'
-	titleEnd = '</h3>' 
+	titleStart = '<main><article>'
 
 	for monthDictionary in monthsDictionary:
 		# For each month there is a blog post for
@@ -338,19 +336,17 @@ def makeMonth(monthsDictionary):
 		blogOrder.append(monthHead)
 
 		# start the body and titles
+		monthYear = monthsDictionary[monthDictionary]["monthText"] + " " + breadcrumbYear
+		bodyStart = '<header><h1>' + monthYear + '</h1></header>'	
 		blogOrder.append(bodyStart)
 		# add the locations that make up the breadcrumb trail
 		blogOrder.append(breadcrumbStart)
 		breadcrumbYear = str(monthsDictionary[monthDictionary]['year'])
 		blogOrder.append(breadcrumbYear)
 		blogOrder.append(breadcrumbMiddle)
-		monthYear = monthsDictionary[monthDictionary]["monthText"] + " " + breadcrumbYear
 		blogOrder.append(monthYear)
 		blogOrder.append(breadcrumbEnd)
-		
 		blogOrder.append(titleStart)
-		blogOrder.append(monthYear)
-		blogOrder.append(titleEnd)
 		
 		# This is the list of contents to end the html file 
 		blogOrderEnd = []
