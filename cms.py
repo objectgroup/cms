@@ -315,7 +315,6 @@ def orderedYears(yearsDictionary):
 
 def makeMonth(monthsDictionary):
 
-
 	breadcrumbStart= '<nav><ol class="breadcrumb"><li><a href="../../index.html">home</a></li><li><a href="../index.html">'
 	breadcrumbMiddle = ' notes</a></li><li>'
 	breadcrumbEnd = '</li></ol></nav>'
@@ -336,12 +335,12 @@ def makeMonth(monthsDictionary):
 		blogOrder.append(monthHead)
 
 		# start the body and titles
+		breadcrumbYear = str(monthsDictionary[monthDictionary]['year'])
 		monthYear = monthsDictionary[monthDictionary]["monthText"] + " " + breadcrumbYear
 		bodyStart = '<header><h1>' + monthYear + '</h1></header>'	
 		blogOrder.append(bodyStart)
 		# add the locations that make up the breadcrumb trail
 		blogOrder.append(breadcrumbStart)
-		breadcrumbYear = str(monthsDictionary[monthDictionary]['year'])
 		blogOrder.append(breadcrumbYear)
 		blogOrder.append(breadcrumbMiddle)
 		blogOrder.append(monthYear)
