@@ -32,9 +32,8 @@ footerText = cmsc.footerText
 yearDescending = []
 
 def build (fileName, appendText):
-	append_file = open (fileName, 'a')
-	append_file.write(appendText)
-	append_file.close()
+	with open (fileName, 'a') as append_file: 
+		append_file.write(appendText)
 
 def moveDirectoryDown(newDirectory):
     currentDir = os.getcwd()
@@ -176,18 +175,18 @@ def orderedMonths(monthsDictionary):
 
 def createMeta(monthsDictionary):
 	# read the meta.csv and Blogs files into data structures #
-	csvfile = open ("../meta.csv", 'r')	
-	reader = csv.reader(csvfile)
+	with open ("../meta.csv", 'r') as csvfile: 	
+		reader = csv.reader(csvfile)
 
 	# loop through each line of the meta.csv 
 	# if it's filename matches with the monthDictionary filename
 	# then add values of metatitle and metaDescription to the dictionary
-	for row in reader:
-		csvFilename = row[0]
-		metatitle = row[1] 
-		metaDescription = row[2] 
-		monthsDictionary[csvFilename]["metaTitle"] = metatitle
-		monthsDictionary[csvFilename]["metaDescription"] = metaDescription
+		for row in reader:
+			csvFilename = row[0]
+			metatitle = row[1] 
+			metaDescription = row[2] 
+			monthsDictionary[csvFilename]["metaTitle"] = metatitle
+			monthsDictionary[csvFilename]["metaDescription"] = metaDescription
 	return monthsDictionary
 
 
@@ -259,20 +258,20 @@ def createDictionaryForYears(monthsDictionary):
 
 def createYearMeta(yearsDictionary):
 	# read the meta.csv and Blogs files into data structures #
-	csvfile = open ("../meta-year.csv", 'r')	
-	reader = csv.reader(csvfile)
+	with open ("../meta-year.csv", 'r')	as csvfile: 
+		reader = csv.reader(csvfile)
 
 	# loop through each line of the meta.csv 
 	# if it's filename matches with the monthDictionary filename
 	# then add values of metatitle and metatags to the dictionary
-	for column in reader:
-		cvsYear = column[0]
-		metatitle = column[1]
-		metatag = column[2]
-		for year in yearsDictionary:
-			if str(year) == str(cvsYear):
-				yearsDictionary[year]["metaTag"] = metatag
-				yearsDictionary[year]["metaTitle"] = metatitle
+		for column in reader:
+			cvsYear = column[0]
+			metatitle = column[1]
+			metatag = column[2]
+			for year in yearsDictionary:
+				if str(year) == str(cvsYear):
+					yearsDictionary[year]["metaTag"] = metatag
+					yearsDictionary[year]["metaTitle"] = metatitle
 	return yearsDictionary
 
 def createYearsBreadcrumb(yearsDictionary):
@@ -383,21 +382,20 @@ def makeMonth(monthsDictionary):
 		
 		# add all the html data to the html file
 		newFileName = monthsDictionary[monthDictionary]["newFileName"] 
-		f = open(newFileName, 'w')
+		with open(newFileName, 'w') as f:
 		# write to the new file the header and breadcrumb and title text html
-		for entry in blogOrder:
-	 		f.write(entry)
-		# identify the filename to open the plain text notes/blog
-		fileName = monthsDictionary[monthDictionary]["fileName"]
-		# open and wrap html text to this file and return it as a list 
-		fileContent = wrapHtml(fileName)
-		# write this list of html wrapped text to the new file 
-		for content in fileContent:
-			f.write(content)
-		# write to the new file all the footer and navigation html
-		for entry in blogOrderEnd:
-	 		f.write(entry)
-		f.close()
+			for entry in blogOrder:
+	 			f.write(entry)
+			# identify the filename to open the plain text notes/blog
+			fileName = monthsDictionary[monthDictionary]["fileName"]
+			# open and wrap html text to this file and return it as a list 
+			fileContent = wrapHtml(fileName)
+			# write this list of html wrapped text to the new file 
+			for content in fileContent:
+				f.write(content)
+			# write to the new file all the footer and navigation html
+			for entry in blogOrderEnd:
+	 			f.write(entry)
 
 def makeYear(yearDictionary):
 
@@ -474,28 +472,28 @@ def makeYear(yearDictionary):
 		# add all the html data to the html file
 	    # this is how you retrive the results of the ascending sorting of months
 		newFileName = str(year)
-		f = open(newFileName, 'a')
-		for entry in blogOrder:
-			f.write(entry)
-		for month in yearDictionary[year]["monthAscending"]:
-			filename = str(month[0])
-			monthText = str(month[1]) + str(year)
-			monthNumber = str(month[2])
-			f.write(startArticle)
-			f.write(startMonthHeading)
-			f.write(monthNumber)
-			f.write(middleMonthHeading)
-			f.write(monthText)
-			f.write(endMonthHeading)
-			# for the identified month wrap the text in html 
-			# and the return text is in a list
-			blogEntry = wrapHtml(filename)
-			# then loop through the list to add it to the year html page
-			for fileContent in blogEntry:
-				f.write(fileContent)
-			f.write(endArticle)
-		for entry in blogOrderEnd:
-			f.write(entry)
+		with open(newFileName, 'a') as f:
+			for entry in blogOrder:
+				f.write(entry)
+			for month in yearDictionary[year]["monthAscending"]:
+				filename = str(month[0])
+				monthText = str(month[1]) + str(year)
+				monthNumber = str(month[2])
+				f.write(startArticle)
+				f.write(startMonthHeading)
+				f.write(monthNumber)
+				f.write(middleMonthHeading)
+				f.write(monthText)
+				f.write(endMonthHeading)
+				# for the identified month wrap the text in html 
+				# and the return text is in a list
+				blogEntry = wrapHtml(filename)
+				# then loop through the list to add it to the year html page
+				for fileContent in blogEntry:
+					f.write(fileContent)
+				f.write(endArticle)
+			for entry in blogOrderEnd:
+				f.write(entry)
 
 def makeDirectory(yearDictionary, monthsDictionary, rssDictionary):
 	# if the notes directory already exists
@@ -537,7 +535,7 @@ def makeDirectory(yearDictionary, monthsDictionary, rssDictionary):
 	# move back up to the test-script directory 
 	moveDirectoryUp()
 	# move files from blogs directory into approates part of the notes directory
-	# the fileMove list has two elements: 
+	# the fileMove list has three elements: 
 	# the first is the file location and two is the destination
 	# the third is the filename in its new destination
 	fileMove = []
@@ -565,6 +563,7 @@ def makeDirectory(yearDictionary, monthsDictionary, rssDictionary):
 	print ("current Directory : ", currentDirectory)
 	notes = currentDirectory + "/notes"
 	shutil.copytree(notes, "../" + websiteDomain, dirs_exist_ok=True)
+	shutil.rmtree(notes)
 
 def createDictionaryForRSS(monthsDictionary, yearDictionary):
 	items = {}
@@ -699,9 +698,9 @@ def makeRSS(yearDictionary, rssDictionary):
 	rssList.append(rssEnd)
 	
 	# print the entire list out to the rss file
-	rssFeed = open(rssFileName, 'w')
-	for line in rssList:
-		rssFeed.write(line)	
+	with open(rssFileName, 'w') as rssFeed:
+		for line in rssList:
+			rssFeed.write(line)	
 
 def wrapHtml(fileName):
 	# a file name is passed in, this file is opened 
@@ -718,6 +717,10 @@ def wrapHtml(fileName):
 	for index, line in enumerate(lines):
 		lines[index] = re.sub("\n", "</p>", line)
 	for index, line in enumerate(lines):
+		lines[index] = re.sub("<p><s>", "<section><p>", line)
+	for index, line in enumerate(lines):
+		lines[index] = re.sub("</s></p>", "</p></section>", line)
+	for index, line in enumerate(lines):
 		lines[index] = re.sub("'", "&apos;", line)
 	return lines
 
@@ -727,12 +730,12 @@ def makeIndex():
 	latestYear = yearDescending[0]
 
 	websiteIndex = '\
-	<html>\
+	<!DOCTYPE html lang="en-GB">\
 	<head>\
 	<meta charset="utf-8">\
 	<title>' + websiteName + '</title>\
 	<meta name="author" content="'+ websiteName +'">\
-	<meta name="robots" content="index, follow" />\
+	<meta name="robots" content="index, follow">\
 	<meta name="color-scheme" content="dark light">\
 	<meta name="viewport" content="width=device-width, initial-scale=1">\
 	<link type="text/css" rel="stylesheet" href="'+ styleSheetPathIndex +'">\
@@ -745,7 +748,7 @@ def makeIndex():
 	<body>\
 	<div class="bodyIndex">\
 	<header><h1>'+ websiteName +'</h1></header>\
-	<h4>' + websiteDescription + '</h4>\
+	<h2>' + websiteDescription + '</h2>\
 	<nav class="indexMenu">\
 	<a href="' + str(latestYear) +'/index.html"> Notes | </a>\
 	<a href="'+ rssFileName +'"> RSS | </a>\
@@ -756,9 +759,9 @@ def makeIndex():
 	</html>'
 
 	# print the entire list out to the index.html file
-	indexFile = open("index.html", 'w')
-	for line in websiteIndex:
-		indexFile.write(line)	
+	with open("index.html", 'w') as indexFile:
+		for line in websiteIndex:
+			indexFile.write(line)	
 
 def makeAbout():
 	websiteAbout = []
@@ -786,18 +789,17 @@ def makeAbout():
 	websiteAbout.append(aboutFooter)	
 	
 	# print the entire list out to the about.html file
-	aboutFile = open("about.html", 'w')
-	for line in websiteAbout:
-		aboutFile.write(line)	
-	aboutFile.close()
+	with open("about.html", 'w') as aboutFile:
+		for line in websiteAbout:
+			aboutFile.write(line)	
 
 def makeHead(styleSheetPath, faviconPath, metaKeywords, metaDescription):
-	header = '<html>\
+	header = '<!DOCTYPE html lang="en-GB">\
 	<head>\
 	<meta charset="utf-8">\
 	<title>' + websiteName + '</title>\
 	<meta name="author" content="'+ websiteName +'">\
-	<meta name="robots" content="index, follow" />\
+	<meta name="robots" content="index, follow">\
 	<meta name="color-scheme" content="light dark">\
 	<meta name="viewport" content="width=device-width, initial-scale=1">\
 	<link type="text/css" rel="stylesheet" href="'+ styleSheetPath +'">\
