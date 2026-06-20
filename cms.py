@@ -575,6 +575,7 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 	# the rss feed as items
 	# get all the months in a big list in order from newest to oldest then
 	# slice off the required amount. 
+	# the date for the rss feed comes from meta.csv
 	listofTuples = []
 	for month in monthsDictionary:
 		rssYear = (monthsDictionary[month]["year"])
