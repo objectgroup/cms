@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import pytz
 import os
 import csv
 import datetime
@@ -565,79 +566,174 @@ def makeDirectory(yearDictionary, monthsDictionary, rssDictionary):
 	shutil.copytree(notes, "../" + websiteDomain, dirs_exist_ok=True)
 	shutil.rmtree(notes)
 
+def LetterDay(dayNumber):
+	threeLetterDay = ""
+	if dayNumber == 0:
+		return "Mon"
+	if dayNumber == 1:
+		return "Tue"
+	if dayNumber == 2:
+		return "Wed"
+	if dayNumber == 3:
+		return "Thu"
+	if dayNumber == 4:
+		return "Fri"
+	if dayNumber == 5:
+		return "Sat"
+	if dayNumber == 6:
+		return "Sun"
+			
+
 def createDictionaryForRSS(monthsDictionary, yearDictionary):
-	items = {}
-	# first identify the most recent blog notes for adding to the rss feed 
-	# by ordering the years and months 
-	# by most recent 
-	# then batching off the first numberOfRssItems (a global variable) 
-	# we get a subset list of the filenames we will add to 
-	# the rss feed as items
-	# get all the months in a big list in order from newest to oldest then
-	# slice off the required amount. 
-	# the date for the rss feed comes from meta.csv
-	listofTuples = []
-	for month in monthsDictionary:
-		rssYear = (monthsDictionary[month]["year"])
-		rssMonth = (monthsDictionary[month]["monthNumber"])
-		listofTuples.append((rssYear, rssMonth))
-	print (listofTuples)	
-	sortedTuplesList = sorted(listofTuples, reverse=True, key=itemgetter(0,1))	
-	result = islice(sortedTuplesList, numberOfRssItems)
-	for yearMonthTuple in result:
-		month = (str(yearMonthTuple[0]) + "-" + str(yearMonthTuple[1]))
-	# for each selected month in the monthsDictionary use the 
-	# information to make a dictionary of rss <items> 
-	# first using the year and month to add to datetime the details: 
-	# year, month, day, (+ optional) hour, minute, second of month to make
-	# to get the timestamp in the format the format :
-	# threeLetterDay, twoDigitDay, threeLetterMonth, fourDigitYear, hour:minute:second GMT 
-	# for the <pubdate> of the rss 
-		fileName = (monthsDictionary[month]['fileName'])
-		rssYear = (monthsDictionary[month]["year"])
-		rssMonth = (monthsDictionary[month]["monthNumber"])
-		currentTime = datetime.datetime(rssYear, rssMonth, 1, 12, 30, 0)
-		year = str(currentTime.year)
-		blogmonth = currentTime.month
-		day = currentTime.day
-		hour = str(currentTime.hour)
-		minute = str(currentTime.minute)
-		second = str(currentTime.second)
-		weekday = currentTime.weekday()
-		writtenMonth = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]	
-		letterMonth = writtenMonth[blogmonth]
-		threeLetterDay = ""
-		if weekday == 0:
-			threeLetterDay = "Mon"
-		if weekday == 1:
-			threeLetterDay = "Tue"
-		if weekday == 2:
-			threeLetterDay = "Wed"
-		if weekday == 3:
-			threeLetterDay = "Thu"
-		if weekday == 4:
-			threeLetterDay = "Fri"
-		if weekday == 5:
-			threeLetterDay = "Sat"
-		if weekday == 6:
-			threeLetterDay = "Sun"
-		twoDigitDay = ""
-		if day <= 9:
-			twoDigitDay = "0" + str(day) 
+			
+	moveDirectoryUp()
+	# the rss is created from a csv file that has a list of 
+	# previous rss pubdates and may contain the current one
+	# the csv.py script will identify if the current month and year
+	# is present in the pubdate of the last entry of the rss.csv file
+	# if present the script will not offer to update the rss.xml
+	# but if the current month and year are not present on the 
+	# last line of the rss.csv then the script will offer an update
+	# of a pubdate with the current date and time 
+	
+	# a data structure to convert month numbers to a three letter 
+	# representation of that month e.g. 1 is Jan 
+	# the writtenMonth index is the month number and the list value for
+	# that index is the three letter equivalent
+	writtenMonth = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]	
+
+	# identify the current month and year
+	tz = pytz.timezone('Europe/London')
+	currentTime = datetime.datetime.now(tz)
+	# the current year is given as a four digigt number e.g. 2026 
+	currentYear = (str(currentTime.year))
+	# the current month is given as a number 1 to 12
+	currentMonth = writtenMonth[currentTime.month]
+	# the current day is given as a number 1 to 31
+	currentDay = str(currentTime.day)
+	currentHour = str(currentTime.hour)
+	currentMinute = str(currentTime.minute)
+	currentSecond = str(currentTime.second)
+	# the currentWeekday is given as a number 1 to 7
+	currentWeekday = currentTime.weekday()
+	# store the current time in the pubdate format 
+	# an example is Mon, 18, May, 2026, 12:30:0 GMT
+	rssPubdate = (LetterDay(currentWeekday) + ", " + currentDay + ", " + currentMonth + ", " + currentYear + ", " + currentHour + ":" + currentMinute + ":" + currentSecond + " GMT")
+
+	# a variable that gives the total number of lines in the rss.csv
+	totalRSSCSVEntries = 0
+	
+	# check if rss.csv exists and if so then open it and record the 
+	# number of lines in the totalRSSCSVEntries 
+	# and if the file does not exist then 
+	# set the value of totalRSSCSVEntries to 0
+	# which will later be used to create an rss.csv 
+	# in the current directory
+	if os.path.exists("rss.csv"):	
+		with open("rss.csv", "r") as f:
+			totalRSSCSVEntries = sum(1 for line in f)
+	else:	
+		# rss.csv does not exist
+		totalRSSCSVEntries = 0
+
+	# set append equal to false as the default 
+	# assume there won't be appending unless instructed otherwise
+	append = False
+	counter = 0
+	allRSSentries = {}
+	
+	# if there are no entries as rss.csv doesn't exist 
+	# then offer to add an entry by setting append to true  
+	if totalRSSCSVEntries == 0:
+		append = True
+	# else identify the year and month of each row and
+	# create a diectionary with a key of the string year-month
+	# where year is a four digit number in string form and
+	# month is a number 1 to 12 in string form
+	# and the value is the pubdate in string form   
+	else:
+		with open("rss.csv", "r") as f:
+			rsscsvdata = csv.reader(f)
+			for row in rsscsvdata:
+				counter += 1
+				latestRssMonth = row[2].lstrip()
+				latestRssYear = row[3].lstrip()
+				allRSSentries[latestRssYear + "-" + str(writtenMonth.index(latestRssMonth))] = row
+				# if the last pubdate entry in the rss.csv is 
+				# this month and year then consider that 
+				# no more entries are required at present
+				if counter == totalRSSCSVEntries: 
+					if latestRssMonth == currentMonth and latestRssYear == currentYear:
+						print ("for the date: " +  latestRssYear + "-" + latestRssMonth + " there is already an entry in the rss feed")		
+					else:
+						print ("there is not already an rss entry for " + latestRssYear + "-" + latestRssMonth)
+						append = True
+	
+	# having identified if there is a new entry to be added 
+	# with the append flag check with the use that they want to add it
+	if append == True:
+		addDate = input("add today's date to the rss feed? (y/n)")
+		if addDate == "y" or addDate == "Y" or addDate == "yes" or addDate == "Yes":
+			print (str(rssPubdate))
+			with open("rss.csv", "a") as f:
+				f.write(str(rssPubdate))
+				print("new time appended to rss")
 		else:
-			twoDigitDay = str(day)
-		pubdate = ("<pubdate>" + threeLetterDay + ", " + twoDigitDay + ", " + letterMonth + ", " + year + ", " + hour + ":" + minute + ":" + second + " GMT</pubdate>")
+			print ("no new date was added to rss")
+
+	allentrieslist = []
+	# the rss.csv is now up to date with entries to be added to the rss.xml 
+	# if there are more entries in the rss.csv than defined by the variable
+	# numberOfRssItems then pick the latest number of items specified in 
+    # numberOfRssItems  
+	# else if there an fewer items in the rss.csv than spepecified 
+	# by the numberOfRssItems then ese what is there
+	if os.path.exists("rss.csv"):	
+		with open("rss.csv", "r") as f:
+			allRssEntries = csv.reader(f)
+			for row in allRssEntries:
+				allentrieslist.append(row)
+			allRssEntriesInCsv = len(allentrieslist)
+			if allRssEntriesInCsv > numberOfRssItems:
+				latestRSSentries = (allentrieslist[-numberOfRssItems:])
+			else:
+				latestRSSentries = allentrieslist
+	else:
+		print("rss.csv doesn't exist")
+		return items
+
+	# now the RSS entries are in a latestRSSentries list
+	# that has the pubdate seperated into list items, for example
+	# ['Mon', ' 18', ' May', ' 2026', ' 12:30:0 GMT']
+	# add to each entry a final list item of the year (list item 3)
+	# followed by a hyphen followed by the month as a one or two digit 
+	# number derived from list item 2. With that final list item
+	# it is possible to obtain details from the month or year dictionary 
+	# which can be used to construct the rss feed
+	moveDirectoryDown("blogs")
+	items = {}
+	for entry in latestRSSentries:
+		year = entry[3].lstrip()	
+		monthInWords = entry[2].lstrip()
+		monthInNumbers = str(writtenMonth.index(monthInWords))
+		fileName = (year + "-" + monthInNumbers)
+		# add all the items from latestRSSentries and monthsDictionary
+		# to the dictionary called items 
+		threeLetterDay = entry[0].lstrip()
+		twoDigitDay = entry[1].lstrip()
+		time = entry[4].lstrip()
+		pubdate = ("<pubdate>" + threeLetterDay + ", " + twoDigitDay + ", " + monthInWords + ", " + year + ", " + time + "</pubdate>")
 		items[fileName] = {"pubdate": pubdate}
-		blogTitle = (monthsDictionary[month]['title'])
+		blogTitle = (monthsDictionary[fileName]['title'])
 		rssItemTitle = {'title': "<title>" + blogTitle + "</title>"} 
 		items[fileName].update(rssItemTitle)
 		# constructing the url of the post for the rss feed <link> tag
-		itemLink = websiteURL + "/" + str(rssYear) + "/" + str(rssMonth)  
+		itemLink = websiteURL + "/" + year + "/" + monthInNumbers  
 		rssItemLink = {'link': "<link>" + itemLink + "</link>"} 
 		items[fileName].update(rssItemLink)
 		# using the metaDescription for the description of the post 
 		# for the rss feed <description> tag
-		rssItemDescription = {'description': "<description>" + monthsDictionary[month]['metaDescription'] + "</description>"} 
+		rssItemDescription = {'description': "<description>" + monthsDictionary[fileName]['metaDescription'] + "</description>"} 
 		items[fileName].update(rssItemDescription)
 		# using the websiteEmail for the <author> tag of the rss feed
 		rssItemAuthor = {'author': "<author>" + websiteEmail + "</author>"} 
@@ -646,10 +742,9 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 		rssItemSource = {'source': "<source>" + websiteURL + "/" +  rssFileName + "</source>"} 
 		items[fileName].update(rssItemSource)
 		# using the metaTitle for the <category> tag of the rss feed
-		rssItemCategory = {'category': "<category>" + monthsDictionary[month]['metaTitle'] + "</category>"} 
+		rssItemCategory = {'category': "<category>" + monthsDictionary[fileName]['metaTitle'] + "</category>"} 
 		items[fileName].update(rssItemCategory)
 	return items
-
 
 def makeRSS(yearDictionary, rssDictionary):
 	rssList = []
