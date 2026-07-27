@@ -514,7 +514,7 @@ def makeDirectory(yearDictionary, monthsDictionary, rssDictionary):
 
 	# make the about.html, the index.html and the rss.xml 
 	# in the notes directory		
-	makeRSS(yearDictionary, rssDictionary)
+	makeRSS(rssDictionary)
 	# makeIndex always comes after makeRSS because makeRSS calculates 
 	# the latest year there is a blog entry for and this is used in index
 	# to always link to the latest year page there is an entry for
@@ -647,7 +647,7 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 	if totalRSSCSVEntries == 0:
 		append = True
 	# else identify the year and month of each row and
-	# create a diectionary with a key of the string year-month
+	# create a dictionary with a key of the string year-month
 	# where year is a four digit number in string form and
 	# month is a number 1 to 12 in string form
 	# and the value is the pubdate in string form   
@@ -686,8 +686,8 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 	# if there are more entries in the rss.csv than defined by the variable
 	# numberOfRssItems then pick the latest number of items specified in 
     # numberOfRssItems  
-	# else if there an fewer items in the rss.csv than spepecified 
-	# by the numberOfRssItems then ese what is there
+	# else if there are fewer items in the rss.csv than spepecified 
+	# by the numberOfRssItems then use what is there
 	if os.path.exists("rss.csv"):	
 		with open("rss.csv", "r") as f:
 			allRssEntries = csv.reader(f)
@@ -712,6 +712,7 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 	# which can be used to construct the rss feed
 	moveDirectoryDown("blogs")
 	items = {}
+	counter = 1
 	for entry in latestRSSentries:
 		year = entry[3].lstrip()	
 		monthInWords = entry[2].lstrip()
@@ -727,6 +728,9 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 		blogTitle = (monthsDictionary[fileName]['title'])
 		rssItemTitle = {'title': "<title>" + blogTitle + "</title>"} 
 		items[fileName].update(rssItemTitle)
+		rssCounter = {"counter": counter}
+		items[fileName].update(rssCounter)
+		counter += 1
 		# constructing the url of the post for the rss feed <link> tag
 		itemLink = websiteURL + "/" + year + "/" + monthInNumbers  
 		rssItemLink = {'link': "<link>" + itemLink + "</link>"} 
@@ -746,9 +750,20 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 		items[fileName].update(rssItemCategory)
 	return items
 
-def makeRSS(yearDictionary, rssDictionary):
+def makeRSS(rssDictionary):
 	rssList = []
-	# build the rss list 
+	# build the channel information for the rss feed
+	# as defined by https://www.rssboard.org/rss-specification
+	# it includes;
+	# title - the name of the channel
+	# link - the url of website
+	# description - a sentence describing the channel  
+	# and optional extras include:
+	# language - defined here https://www.rssboard.org/rss-language-codes
+	# image of the faviconURL	
+	# copyright
+	# pubDate	The publication date for the content in the channel.
+	
 	rssBegin = '<?xml version="1.0" encoding="utf-8"?><rss version="2.0">\n'
 	rssList.append(rssBegin)
 	rssChannelStart = '<channel>\n'
@@ -764,29 +779,46 @@ def makeRSS(yearDictionary, rssDictionary):
 	rssImage = '\t<image>\n \t\t<title>' + websiteName + '</title>\n \t\t<link>' + websiteURL + '</link>\n \t\t <url>' + faviconURL + '</url>\n \t\t<width>150</width>\n \t\t<height>150</height>\n\t</image>\n' 
 	rssList.append(rssImage)
 
-	latestYear = yearDescending[0]
-	print(yearDictionary[latestYear]['monthAscending'][0][0])
-	keyForRss = yearDictionary[latestYear]['monthAscending'][0][0]
-	# pubdate is given by current date and time for the rss document as a whole
-	# TO DO AFTER PUSH TO GITHUB
+	# identify the pubdate for the latest blog
+	# to find this use the rss Dictionary
+#	keyForRss = yearDictionary[latestYear]['monthAscending'][0][0]
+	latestPostsCounter = []
+	# make a list of the counters in the rss entries - they represent order
+	# of adding to the rss.csv the greatest being the latest entry 
+	for filename in rssDictionary:
+		latestPostsCounter.append(rssDictionary[filename]["counter"]) 
+	# identify the latest entry to rss.csv from this list of counters
+	latestPostsCounter.sort(reverse=True)	
+	latestRssItemCounter = latestPostsCounter[0] 
+	# find the key value for this lastest entry 
+	for filename in rssDictionary:	
+		if rssDictionary[filename]['counter'] == latestRssItemCounter:
+			keyForRss = filename 	
+
+	latestYear = keyForRss.split('-')
+
+	# pubdate is given in the latest item in the rss.csv 
 	current_time = datetime.datetime.now() 
 	currentYear = current_time.year
 	currentMonth = current_time.month
 	rssPubDate = '\t' + rssDictionary[keyForRss]["pubdate"] + '\n'
 	rssList.append(rssPubDate)
-	rssCopyright = '\t<copyright>Copyright '+ str(latestYear) + ', ' + websiteName +'</copyright>\n'
+	rssCopyright = '\t<copyright>Copyright '+ str(currentYear) + ', ' + websiteName +'</copyright>\n'
 	rssList.append(rssCopyright)
 	# add the items to the rss feed in the order of: 
 	# years with most recent year first and 
 	# months with most recent month first
-	for year in yearDescending:
-		for orderedMonth in yearDictionary[year]['monthAscending']:
-			rssItemStart = '\t\t<item>\n'
-			rssList.append(rssItemStart)
-			for itemEntry in rssDictionary[orderedMonth[0]]:
-				rssList.append('\t\t\t' + rssDictionary[orderedMonth[0]][itemEntry] + '\n')
-			rssItemEnd= '\t\t</item>\n'
-			rssList.append(rssItemEnd)
+	for counter in latestPostsCounter:
+		for item in rssDictionary:
+			if rssDictionary[item]['counter'] == counter: 
+				counterlessItem = dict(rssDictionary[item])
+				counterlessItem.pop('counter')
+				rssItemStart = '\t\t<item>\n'
+				rssList.append(rssItemStart)
+				for itemEntry in counterlessItem:
+					rssList.append('\t\t\t' + counterlessItem[itemEntry] + '\n')
+				rssItemEnd= '\t\t</item>\n'
+				rssList.append(rssItemEnd)
 
 	rssChannelEnd = '</channel>\n'
 	rssList.append(rssChannelEnd)
