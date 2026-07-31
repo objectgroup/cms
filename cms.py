@@ -566,6 +566,15 @@ def makeDirectory(yearDictionary, monthsDictionary, rssDictionary):
 	shutil.copytree(notes, "../" + websiteDomain, dirs_exist_ok=True)
 	shutil.rmtree(notes)
 
+def zeroSuffix(time):
+# checks if the time is less than 10 units, if so it adds a "0" character
+# to the begining of that number and turns the number into a string and 
+# returns it. 
+	if time < 10:
+		return  "0" + str(time)
+	else:
+		return str(time)
+
 def LetterDay(dayNumber):
 	threeLetterDay = ""
 	if dayNumber == 0:
@@ -611,9 +620,12 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 	currentMonth = writtenMonth[currentTime.month]
 	# the current day is given as a number 1 to 31
 	currentDay = str(currentTime.day)
-	currentHour = str(currentTime.hour)
-	currentMinute = str(currentTime.minute)
-	currentSecond = str(currentTime.second)
+	currentHour = currentTime.hour
+	currentHour = zeroSuffix(currentHour)
+	currentMinute = currentTime.minute
+	currentMinute = zeroSuffix(currentMinute)
+	currentSecond = currentTime.second
+	currentSecond = zeroSuffix(currentSecond)
 	# the currentWeekday is given as a number 1 to 7
 	currentWeekday = currentTime.weekday()
 	# store the current time in the pubdate format 
