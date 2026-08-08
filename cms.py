@@ -591,8 +591,14 @@ def LetterDay(dayNumber):
 		return "Sat"
 	if dayNumber == 6:
 		return "Sun"
-			
-
+	
+def checkDuplicateDates(tupleList):
+	for sublist in tupleList:
+		if (tupleList.count(sublist)) > 1:
+			print ("rss.csv has duplicate entry: ")
+			print (sublist) 
+		
+	
 def createDictionaryForRSS(monthsDictionary, yearDictionary):
 			
 	moveDirectoryUp()
@@ -634,20 +640,56 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 
 	# a variable that gives the total number of lines in the rss.csv
 	totalRSSCSVEntries = 0
-	
+	rssDateTuple = []	
 	# check if rss.csv exists and if so then open it and record the 
 	# number of lines in the totalRSSCSVEntries 
+	# and check it against the contents of the blogs directory 
+	# which should be identical
 	# and if the file does not exist then 
 	# set the value of totalRSSCSVEntries to 0
 	# which will later be used to create an rss.csv 
 	# in the current directory
 	if os.path.exists("rss.csv"):	
 		with open("rss.csv", "r") as f:
-			totalRSSCSVEntries = sum(1 for line in f)
+			#totalRSSCSVEntries = sum(1 for line in f)
+			rsscsvdata = csv.reader(f)
+			for row in rsscsvdata:
+				totalRSSCSVEntries += 1
+				latestRssMonth = writtenMonth.index(row[2].lstrip())
+				latestRssYear = int(row[3].lstrip())
+				rssDateTuple.append((latestRssMonth, latestRssYear))
 	else:	
 		# rss.csv does not exist
 		totalRSSCSVEntries = 0
 
+	# to check that the dicrectory containing the notes matches
+	# the equivalant pubdate entries in the rss.csv 
+	# create an equivalent to the rssDateTuple for the notes in 
+	# the directory containing the notes 
+	noteDateTuple = []	
+	totalNoteEntries = 0
+	for note in monthsDictionary:
+		totalNoteEntries += 1
+		noteDateTuple.append((monthsDictionary[note]["monthNumber"], monthsDictionary[note]["year"]))	
+
+	print ("RSS Entries Tuple: ") 
+	print (rssDateTuple)
+	print ("Note Entries Tuple: ") 
+	print (noteDateTuple)
+	# check if there are any duplicates in the rss.csv or the 
+	# note entries in the blog directory
+	checkDuplicateDates(rssDateTuple)
+	checkDuplicateDates(noteDateTuple)
+	
+	# check the number of note entries in the blog directory is 
+	# equal to those in the rss.csv file excluding duplicates
+	if set(noteDateTuple) == set(rssDateTuple):
+		print ("The rss.csv matches the note entries exactly.")
+	else:
+		print("There is a difference between the rss.csv and note entries.")
+		print ("The notes has these entries that rss.csv does not have: " + str(set(noteDateTuple) - set(rssDateTuple)))
+		print ("The rss.csv has these entries that notes does not have: " + str(set(rssDateTuple) - set(noteDateTuple)))
+	
 	# set append equal to false as the default 
 	# assume there won't be appending unless instructed otherwise
 	append = False
@@ -971,6 +1013,6 @@ def makeItAll():
 	makeMonth(monthsDictionary)
 	makeYear(yearDictionary)
 	makeDirectory(yearDictionary, monthsDictionary, rssDictionary)
-	#makeSiteMap()
+	makeSiteMap()
 
 makeItAll()
