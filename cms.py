@@ -989,6 +989,15 @@ def makeAllYears():
 	# along with the note's title and description if needed.
 	entries = useMeta()
 	websiteYearStart = makeHead(styleSheetPathIndex, faviconPathIndex, websiteMetaIndex, websiteDescription)
+	websiteYearTitle = '\
+	<header><h1>Notes for all years</h1></header>\
+	<nav>\
+	<ol class="breadcrumb">\
+	<li><a href="https://objectgroup.uk">home</a></li>\
+	<li>all years</li>\
+	</ol>\
+	</nav>'
+
 	websiteMain = ""
 	previousYear = ""
 	for entry in entries:
@@ -1003,6 +1012,8 @@ def makeAllYears():
 	# print the entire list out to the index.html file
 	with open("year.html", 'w') as yearFile:
 		for line in websiteYearStart:
+			yearFile.write(line)
+		for line in websiteYearTitle:
 			yearFile.write(line)
 		for line in websiteMain:
 			yearFile.write(line)
