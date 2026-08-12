@@ -9,6 +9,7 @@ import re
 import cmsc
 from operator import itemgetter
 import shutil
+from collections import OrderedDict
 
 websiteName = cmsc.websiteName
 websiteDomain = cmsc.websiteDomain
@@ -120,8 +121,8 @@ def createMonthsBreadcrumb(monthDictionary):
     # <li><a href="../../">home</a></li> 
     # <li><a href="../">2023 notes</a></li>
     # <li>February 2023</li>
-	opening = "<li><a href='../../'>home</a></li><li><a href='../'>"
-	middle = " notes</a></li><li>"
+	opening = "<li><a href='../../'>home</a></li><li><a href='../../year.html'>all years</a></li><li><a href='../'>"
+	middle = "</a></li><li>"
 	ending = "</li>"
 	monthDictionary["breadcrumb"] = opening + str(monthDictionary["year"]) + middle + monthDictionary["monthText"] + str(monthDictionary["year"]) + ending
 	return monthDictionary
@@ -286,7 +287,7 @@ def createYearsBreadcrumb(yearsDictionary):
     # 		<li>2023 notes</li>
 	#   </ol>
 	# </nav>
-	opening = '<nav><ol class="breadcrumb"><li><a href="..">home</a></li><li>'
+	opening = '<nav><ol class="breadcrumb"><li><a href="..">home</a></li><li><a href="../../year.html">all years</a></li><li>'
 	ending = " notes</li></ol></nav>"
 	for year in yearsDictionary:
 		yearsDictionary[year]["breadcrumb"] = opening + str(year) + ending
@@ -315,7 +316,7 @@ def orderedYears(yearsDictionary):
 
 def makeMonth(monthsDictionary):
 
-	breadcrumbStart= '<nav><ol class="breadcrumb"><li><a href="../../index.html">home</a></li><li><a href="../index.html">'
+	breadcrumbStart= '<nav><ol class="breadcrumb"><li><a href="../../index.html">home</a></li><li><a href="../../year.html">all years</a></li><li><a href="../index.html">'
 	breadcrumbMiddle = ' notes</a></li><li>'
 	breadcrumbEnd = '</li></ol></nav>'
 	
@@ -520,6 +521,7 @@ def makeDirectory(yearDictionary, monthsDictionary, rssDictionary):
 	# to always link to the latest year page there is an entry for
 	makeIndex()
 	makeAbout()
+	makeAllYears()
 		
 	# make directory structure in notes directory
 	for year in yearDictionary:
@@ -599,6 +601,7 @@ def checkDuplicateDates(tupleList):
 			print (sublist) 
 		
 	
+writtenMonth = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]	
 def createDictionaryForRSS(monthsDictionary, yearDictionary):
 			
 	moveDirectoryUp()
@@ -975,6 +978,60 @@ def makeAbout():
 		for line in websiteAbout:
 			aboutFile.write(line)	
 
+def makeAllYears():
+	# This is a page of all the note entries created under a heading
+	# of the year of the notes creation. 
+	# The note entries are links to that note.
+	# The year headings are links to that year of notes.  
+	# To make a page of all the years the meta.csv file is used.
+	# From meta.csv there is the file name which is year and month 
+	# which is also useful for constructing the links that are needed
+	# along with the note's title and description if needed.
+	entries = useMeta()
+	websiteYearStart = makeHead(styleSheetPathIndex, faviconPathIndex, websiteMetaIndex, websiteDescription)
+	websiteMain = ""
+	previousYear = ""
+	for entry in entries:
+		currentYear = entries[entry]['year']
+		if previousYear == currentYear:
+			websiteMain += "<p>" + writtenMonth[int(entries[entry]['month'])] + " <a href='" + entries[entry]['url'] + "'>" +  entries[entry]['title'] + "</a></p>"
+		else:
+			websiteMain += "<h2><a href='https://objectgroup.uk/" + entries[entry]['year'] + "'>" + entries[entry]['year'] + "</a></h2>"
+			websiteMain += "<p>" + writtenMonth[int(entries[entry]['month'])] + " <a href='" + entries[entry]['url'] + "'>" +  entries[entry]['title'] + "</a></p>"
+		previousYear = entries[entry]['year']
+	websiteYearEnd = makeFooter(rssFileName)
+	# print the entire list out to the index.html file
+	with open("year.html", 'w') as yearFile:
+		for line in websiteYearStart:
+			yearFile.write(line)
+		for line in websiteMain:
+			yearFile.write(line)
+		for line in websiteYearEnd:
+			yearFile.write(line)
+
+def useMeta():
+	dictionaryOfEntries = OrderedDict()
+	# read the meta.csv and Blogs files into data structures #
+	with open ("../meta.csv", 'r') as csvfile:
+		reader = csv.reader(csvfile)
+
+		# loop through each line of the meta.csv 
+		# if it's filename matches with the monthDictionary filename
+		# then add values of metatitle and metaDescription to 
+		# the dictionary
+		for row in reader:
+			csvFilename = row[0]
+			filenameList = row[0].split('-')
+			year = filenameList[0].strip()
+			month = filenameList[1].strip()
+			metatitle = row[1]
+			metaDescription = row[2].strip()
+			url = "https://objectgroup.uk/" + year + "/" +  month
+			title = row[3].strip()
+			dictionaryOfEntries[csvFilename] = {"title": title, "year": year, "month": month, "url": url}
+	dictionaryOfEntries = (OrderedDict(reversed(list(dictionaryOfEntries.items()))))
+	return(dictionaryOfEntries)
+
 def makeHead(styleSheetPath, faviconPath, metaKeywords, metaDescription):
 	header = '<!DOCTYPE html lang="en-GB">\
 	<head>\
@@ -1013,6 +1070,6 @@ def makeItAll():
 	makeMonth(monthsDictionary)
 	makeYear(yearDictionary)
 	makeDirectory(yearDictionary, monthsDictionary, rssDictionary)
-	makeSiteMap()
+	#makeSiteMap()
 
 makeItAll()

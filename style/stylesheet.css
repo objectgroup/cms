@@ -59,6 +59,11 @@ a:any-link {
   color: var(--accent);
 }
 
+blockquote {  
+    padding: 1rem;
+    background: #f8fcfd;  
+}
+
 p {
   // Help prevent overflow of long words/names/URLs
   	word-break: break-word;
