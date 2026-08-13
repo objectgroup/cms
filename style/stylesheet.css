@@ -61,7 +61,11 @@ a:any-link {
 
 blockquote {  
     padding: 1rem;
-    background: #f8fcfd;  
+	border: 1px solid red;
+}
+
+section {
+ 	border: 1px solid var(--greencolor);
 }
 
 p {

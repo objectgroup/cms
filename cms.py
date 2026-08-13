@@ -904,7 +904,7 @@ def wrapHtml(fileName):
 	for index, line in enumerate(lines):
 		lines[index] = re.sub("<p><s>", "<section><p>", line)
 	for index, line in enumerate(lines):
-		lines[index] = re.sub("</s></p>", "</p></section>", line)
+		lines[index] = re.sub("</s>\s*</p>", "</p></section>", line)
 	for index, line in enumerate(lines):
 		lines[index] = re.sub("'", "&apos;", line)
 	return lines
