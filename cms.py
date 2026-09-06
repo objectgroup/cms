@@ -497,7 +497,7 @@ def makeYear(yearDictionary):
 			for entry in blogOrderEnd:
 				f.write(entry)
 
-def makeDirectory(yearDictionary, monthsDictionary, rssDictionary):
+def makeDirectory(yearDictionary, monthsDictionary, rssDictionary, sitemapList):
 	# if the notes directory already exists
 	# rename it to notes plus the current year month day and hour
 	# and then create a new notes directory
@@ -516,6 +516,7 @@ def makeDirectory(yearDictionary, monthsDictionary, rssDictionary):
 	# make the about.html, the index.html and the rss.xml 
 	# in the notes directory		
 	makeRSS(rssDictionary)
+	makeSitemap(sitemapList)
 	# makeIndex always comes after makeRSS because makeRSS calculates 
 	# the latest year there is a blog entry for and this is used in index
 	# to always link to the latest year page there is an entry for
@@ -567,6 +568,8 @@ def makeDirectory(yearDictionary, monthsDictionary, rssDictionary):
 	notes = currentDirectory + "/notes"
 	shutil.copytree(notes, "../" + websiteDomain, dirs_exist_ok=True)
 	shutil.rmtree(notes)
+	# copy remaining files sitemap, about,  
+
 
 def zeroSuffix(time):
 # checks if the time is less than 10 units, if so it adds a "0" character
@@ -618,8 +621,6 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 	# representation of that month e.g. 1 is Jan 
 	# the writtenMonth index is the month number and the list value for
 	# that index is the three letter equivalent
-	writtenMonth = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]	
-
 	# identify the current month and year
 	tz = pytz.timezone('Europe/London')
 	currentTime = datetime.datetime.now(tz)
@@ -887,6 +888,12 @@ def makeRSS(rssDictionary):
 		for line in rssList:
 			rssFeed.write(line)	
 
+def makeSitemap(sitemapList):
+	# print the entire list out to the rss file
+	with open("sitemap.xml", 'w', encoding="utf-8") as sitemap:
+		for line in sitemapList:
+			sitemap.write(line)	
+
 def wrapHtml(fileName):
 	# a file name is passed in, this file is opened 
 	# and read into a list called 'lines'
@@ -1043,6 +1050,161 @@ def useMeta():
 	dictionaryOfEntries = (OrderedDict(reversed(list(dictionaryOfEntries.items()))))
 	return(dictionaryOfEntries)
 
+def createSitemapList(rssDictionary, yearDictionary):
+	sitemapList = []
+	tab = "\t"
+	newLine = "\n"
+	urlSet = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">'
+	url = tab + "<url>" + newLine
+	urlEnd = tab + "</url>" + newLine
+	loc = tab + tab + "<loc>"
+	locEnd = "</loc>" + newLine
+	lastMod = tab + tab + "<lastmod>"
+	lastModEnd = "</lastmod>" + newLine
+	changeFreq = tab + tab + "<changefreq>"
+	changeFreqEnd = "</changefreq>" + newLine
+	priority = tab + tab + "<priority>"
+	priorityEnd = "</priority>" + newLine
+	urlSetEnd = "</urlset>"
+	
+	# To print the index.html and rss.html sitemap entry
+	# the pubdate is found by finding the latest year and month to be
+	# published on the site then looking up the pubdate entry in 
+	# the rssDictionary
+	
+	# Headings for sitemap
+	sitemapList.append('<?xml version="1.0" encoding="UTF-8"?>' + newLine)
+	sitemapList.append(urlSet + newLine)
+
+	# Index.html entry
+	sitemapList.append(url)
+	sitemapList.append(loc + websiteURL + "/index.html" + locEnd)
+
+	# find lastest year published and find that year's latest 
+	# month published
+	latestEntryForEachYear = []
+	for year in yearDictionary:
+		fileName = yearDictionary[year]['monthAscending'][0][0]
+		latestEntryForEachYear.append(fileName)	
+	latestEntryForEachYear.sort(reverse=True)
+	# find the year and month and day of the publication 
+	# from rssDictionary
+	pubdate = rssDictionary[latestEntryForEachYear[0]]['pubdate'].split(",")
+	dayOfpublication = pubdate[1].strip()
+	monthOfpublication = str(writtenMonth.index(pubdate[2].strip()))
+	yearOfpublication = pubdate[3].strip()
+	sitemapList.append(lastMod + yearOfpublication + "-" + monthOfpublication + "-" + dayOfpublication + lastModEnd)
+	sitemapList.append(changeFreq + "Monthly" + changeFreqEnd)
+	sitemapList.append(priority + "1" + priorityEnd)
+	sitemapList.append(urlEnd)
+
+	# RSS entry
+	sitemapList.append(url)
+	sitemapList.append(loc + websiteURL + "/" + rssFileName + locEnd)
+
+	# find lastest year published and find that year's latest 
+	# month published
+	latestEntryForEachYear = []
+	for year in yearDictionary:
+		fileName = yearDictionary[year]['monthAscending'][0][0]
+		latestEntryForEachYear.append(fileName)	
+	latestEntryForEachYear.sort(reverse=True)
+	# find the year and month and day of the publication 
+	# from rssDictionary
+	pubdate = rssDictionary[latestEntryForEachYear[0]]['pubdate'].split(",")
+	dayOfpublication = pubdate[1].strip()
+	monthOfpublication = str(writtenMonth.index(pubdate[2].strip()))
+	yearOfpublication = pubdate[3].strip()
+	sitemapList.append(lastMod + yearOfpublication + "-" + monthOfpublication + "-" + dayOfpublication + lastModEnd)
+	sitemapList.append(changeFreq + "Monthly" + changeFreqEnd)
+	sitemapList.append(priority + "1" + priorityEnd)
+	sitemapList.append(urlEnd)
+		
+	# To find the priority for the year pages the total number of years
+	# posted is found through the number of items in the yearDictionary
+	# and the years are ordered 
+
+	ageOfSiteYears = len(yearDictionary)
+	yearOrderList = []
+	for year in yearDictionary:
+		yearOrderList.append(year) 
+	yearOrderList.sort()
+
+	for year in yearDictionary:	
+		sitemapList.append(url)
+		sitemapList.append(loc + websiteURL + "/" + str(year) + "/index.html" + locEnd)
+		yearOrder = yearOrderList.index(int(year))+1
+		fileName = yearDictionary[year]['monthAscending'][0][0]
+		pubdate = rssDictionary[fileName]['pubdate'].split(',')	
+		dayOfpublication = pubdate[1].strip()
+		monthOfpublication = str(writtenMonth.index(pubdate[2].strip()))
+		yearOfpublication = pubdate[3].strip()
+		sitemapList.append(lastMod + yearOfpublication + "-" + monthOfpublication + "-" + dayOfpublication + lastModEnd)	
+		
+		if yearOrder-1 == 1:
+			sitemapList.append(changeFreq + "Monthly" + changeFreqEnd)
+		else:
+			sitemapList.append(changeFreq + "Never" + changeFreqEnd)
+		priorityNum = round(yearOrder / ageOfSiteYears, 2)
+		sitemapList.append(priority +  str(priorityNum) + priorityEnd)
+		sitemapList.append(urlEnd)
+
+	# To find the priority number for the month pages
+	# a list of tuples of year and month is created and ordered
+	# and that is used to look up the position of any given months
+	# order of posting and the list length is used to determine 
+	# the total number of month that have been posted
+	# and the priority can be calculated from the months position 
+	# in the posting order divided by the total number of posts. 
+ 
+	yearMonthOrderListOfTuples = []
+	for yearMonth in rssDictionary:
+		splitName = yearMonth.split('-')
+		yearNum = int(splitName[0]) 
+		monthNum = int(splitName[1])
+		yearMonthOrderListOfTuples.append((yearNum, monthNum))
+	yearMonthOrderListOfTuples.sort()
+	numOfMonthsPosted = len(yearMonthOrderListOfTuples)
+
+	for yearMonth in rssDictionary:
+		pubdate = rssDictionary[yearMonth]['pubdate'].split(",")
+		dayOfpublication = pubdate[1].strip()
+		monthOfpublication = str(writtenMonth.index(pubdate[2].strip()))
+		yearOfpublication = pubdate[3].strip()
+		splitName = yearMonth.split('-')
+		yearNum = int(splitName[0]) 
+		monthNum = int(splitName[1])
+		yearString = str(splitName[0]) 
+		monthString = str(splitName[1])
+		totalMonth = yearMonthOrderListOfTuples.index((yearNum, monthNum))+1	
+		sitemapList.append(url)
+		sitemapList.append(loc + websiteURL + "/" + yearString + "/" + monthString + "/index.html" + locEnd)
+		sitemapList.append(lastMod + yearOfpublication + "-" + monthOfpublication + "-" + dayOfpublication + lastModEnd)	
+		sitemapList.append(changeFreq + "Never" + changeFreqEnd)
+		priorityNum = round(totalMonth/numOfMonthsPosted, 2)	
+		sitemapList.append(priority + str(priorityNum) + priorityEnd)
+		sitemapList.append(urlEnd)
+
+	# To print the about.html sitemap entry
+	# url is website/about.html
+	# the last publication is the pages last update in the filesystem
+	# then calculate the last mod from that to current time. 
+	# if it is within a year or a month etc. 
+	# priority is 1 as it explains the site
+	aboutAttributes = os.stat("../about.txt")
+	modifiedTime = datetime.datetime.fromtimestamp(aboutAttributes.st_mtime)
+	aboutModifidedDate = (modifiedTime.year, modifiedTime.month, modifiedTime.day) 
+
+	sitemapList.append(url)
+	sitemapList.append(loc + websiteURL + "/about.html" + locEnd)
+	sitemapList.append(lastMod + str(modifiedTime.year) + "-" + str(modifiedTime.month) + "-" + str(modifiedTime.day) + lastModEnd)
+	sitemapList.append(changeFreq + "Yearly" + changeFreqEnd)
+	sitemapList.append(priority + "1" + priorityEnd)
+	sitemapList.append(urlEnd)
+	sitemapList.append(urlSetEnd)
+	return (sitemapList)
+
+
 def makeHead(styleSheetPath, faviconPath, metaKeywords, metaDescription):
 	header = '<!DOCTYPE html lang="en-GB">\
 	<head>\
@@ -1080,7 +1242,7 @@ def makeItAll():
 	rssDictionary = createDictionaryForRSS(monthsDictionary, yearDictionary)
 	makeMonth(monthsDictionary)
 	makeYear(yearDictionary)
-	makeDirectory(yearDictionary, monthsDictionary, rssDictionary)
-	#makeSiteMap()
+	sitemapList = createSitemapList(rssDictionary, yearDictionary)
+	makeDirectory(yearDictionary, monthsDictionary, rssDictionary, sitemapList)
 
 makeItAll()

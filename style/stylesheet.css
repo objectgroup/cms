@@ -8,7 +8,7 @@
 html { 
 	--redcolor: #FF3B30FF;
 	--greencolor: #30D158FF;
-	--lightbgcolor: #F2F2F7FF;
+	--lightbgcolor: #FFFFFF;
 	--darkbgcolor: #1C1C1EFF;
   	color-scheme: light dark; 
  	--accent: light-dark(var(--redcolor), var(--greencolor));
@@ -112,8 +112,12 @@ nav{
 	justify-content: center;
 	flex-direction: column;
 }
-
-.indexMenu{
+.indexMenu {
+	top-margin: 2em;
 	display: flex;
-	gap; 3em;
+	column-gap: 0.45em;
+}
+
+.indexMenu a {
+	flex-basis: 0.5em;
 }
