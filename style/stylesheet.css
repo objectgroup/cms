@@ -56,7 +56,10 @@ h4 {
 } 
 
 a:any-link {
-  color: var(--accent);
+	color: var(--fg);
+	text-decoration: underline;
+	text-decoration-color: var(--accent);
+	text-decoration-thickness: 0.25ch;
 }
 
 blockquote {  
@@ -104,13 +107,10 @@ nav{
 }
 
 .bodyIndex{
-	height: 100%;
-	width: 100%;
 	display: flex;
-	position: fixed;
-	align-items: center;
-	justify-content: center;
 	flex-direction: column;
+	justify-content: center;
+	padding: 2ch;
 }
 .indexMenu {
 	top-margin: 2em;
@@ -118,6 +118,6 @@ nav{
 	column-gap: 0.45em;
 }
 
-.indexMenu a {
+.indexMenu a{
 	flex-basis: 0.5em;
 }

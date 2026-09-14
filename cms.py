@@ -16,6 +16,8 @@ websiteDomain = cmsc.websiteDomain
 websiteURL = cmsc.websiteURL
 websiteEmail = cmsc.websiteEmail
 websiteDescription = cmsc.websiteDescription
+websiteSubheading1 = cmsc.websiteSubheading1
+websiteSubheading2 = cmsc.websiteSubheading2
 websiteMetaIndex = cmsc.websiteMetaIndex
 websiteLanguage = cmsc.websiteLanguage
 faviconURL = cmsc.faviconURL
@@ -568,8 +570,9 @@ def makeDirectory(yearDictionary, monthsDictionary, rssDictionary, sitemapList):
 	notes = currentDirectory + "/notes"
 	shutil.copytree(notes, "../" + websiteDomain, dirs_exist_ok=True)
 	shutil.rmtree(notes)
-	# copy remaining files sitemap, about,  
-
+	# copy remaining files image/* and style/*
+	shutil.copytree("style", "../" + websiteDomain, dirs_exist_ok=True)
+	shutil.copytree("images", "../" + websiteDomain, dirs_exist_ok=True)
 
 def zeroSuffix(time):
 # checks if the time is less than 10 units, if so it adds a "0" character
@@ -703,6 +706,7 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 	# if there are no entries as rss.csv doesn't exist 
 	# then offer to add an entry by setting append to true  
 	if totalRSSCSVEntries == 0:
+		print ("there are no entries in rss.csv")
 		append = True
 	# else identify the year and month of each row and
 	# create a dictionary with a key of the string year-month
@@ -940,11 +944,12 @@ def makeIndex():
 	<body>\
 	<div class="bodyIndex">\
 	<header><h1>'+ websiteName +'</h1></header>\
-	<h2>' + websiteDescription + '</h2>\
+	<h2>' + websiteSubheading1 + '</h2>\
+	<h2>' + websiteSubheading2 + '</h2>\
 	<nav class="indexMenu">\
-	<a href="' + str(latestYear) +'/index.html"> Notes | </a>\
-	<a href="'+ rssFileName +'"> RSS | </a>\
-	<a href="about.html"> About </a>\
+	<a href="' + str(latestYear) +'/index.html">Notes</a>\
+	<a href="'+ rssFileName +'">RSS</a>\
+	<a href="about.html">About</a>\
 	</nav>\
 	</div>\
 	</body>\
