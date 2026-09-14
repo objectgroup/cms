@@ -571,8 +571,8 @@ def makeDirectory(yearDictionary, monthsDictionary, rssDictionary, sitemapList):
 	shutil.copytree(notes, "../" + websiteDomain, dirs_exist_ok=True)
 	shutil.rmtree(notes)
 	# copy remaining files image/* and style/*
-	shutil.copytree("style", "../" + websiteDomain, dirs_exist_ok=True)
-	shutil.copytree("images", "../" + websiteDomain, dirs_exist_ok=True)
+	shutil.copytree("style", "../" + websiteDomain + "/style", dirs_exist_ok=True)
+	shutil.copytree("images", "../" + websiteDomain + "/images", dirs_exist_ok=True)
 
 def zeroSuffix(time):
 # checks if the time is less than 10 units, if so it adds a "0" character
