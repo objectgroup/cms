@@ -946,6 +946,10 @@ def wrapHtml(fileName):
 	for index, line in enumerate(lines):
 		lines[index] = re.sub("</s>\s*</p>", "</p></section>", line)
 	for index, line in enumerate(lines):
+		lines[index] = re.sub("<p><blockquote>", "<blockquote><p>", line)
+	for index, line in enumerate(lines):
+		lines[index] = re.sub("</blockquote></p>", "</p></blockquote>", line)
+	for index, line in enumerate(lines):
 		lines[index] = re.sub("'", "&apos;", line)
 	return lines
 
