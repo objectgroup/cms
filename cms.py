@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import pytz
 import os
 import csv
 import datetime
@@ -10,6 +9,7 @@ import cmsc
 from operator import itemgetter
 import shutil
 from collections import OrderedDict
+from zoneinfo import ZoneInfo
 
 websiteName = cmsc.websiteName
 websiteDomain = cmsc.websiteDomain
@@ -606,8 +606,40 @@ def checkDuplicateDates(tupleList):
 			print ("rss.csv has duplicate entry: ")
 			print (sublist) 
 		
+def identifyTimeZone(timeString):
+	timeList = str(timeString).split("+")
+	timeZone = timeList[1]
+	if timeZone == "00:00":
+		return "GMT"
+	elif timeZone == "01:00":
+		return "+01:00"
+
+def createCurrentPubtime():
+	# identify the current month and year
+	currentTime = datetime.datetime.now(tz=ZoneInfo("Europe/London"))
+	timeZone = identifyTimeZone(currentTime)
+	# the current year is given as a four digigt number e.g. 2026 
+	currentYear = (str(currentTime.year))
+	# the current month is given as a number 1 to 12
+	currentMonth = writtenMonth[currentTime.month]
+	# the current day is given as a number 1 to 31
+	currentDay = zeroSuffix(currentTime.day)
+	currentHour = zeroSuffix(currentTime.hour)
+	currentMinute = zeroSuffix(currentTime.minute)
+	currentSecond = zeroSuffix(currentTime.second)
+	# the currentWeekday is given as a number 1 to 7
+	currentWeekday = LetterDay(currentTime.weekday())
+	# store the current time in the pubdate format 
+	# an example is Mon, 18, May, 2026, 12:30:0 GMT
+	rssPubdate = (currentWeekday + ", " + currentDay + ", " + currentMonth + ", " + currentYear + ", " + currentHour + ":" + currentMinute + ":" + currentSecond + " " + timeZone + "\n")
+	return rssPubdate
 	
+# writtenMonth is a data structure to convert month numbers to 
+# a three letter representation of that month e.g. 1 is Jan 
+# the writtenMonth index is the month number and the list value for
+# that index is the three letter equivalent
 writtenMonth = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]	
+
 def createDictionaryForRSS(monthsDictionary, yearDictionary):
 			
 	moveDirectoryUp()
@@ -620,31 +652,6 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 	# last line of the rss.csv then the script will offer an update
 	# of a pubdate with the current date and time 
 	
-	# a data structure to convert month numbers to a three letter 
-	# representation of that month e.g. 1 is Jan 
-	# the writtenMonth index is the month number and the list value for
-	# that index is the three letter equivalent
-	# identify the current month and year
-	tz = pytz.timezone('Europe/London')
-	currentTime = datetime.datetime.now(tz)
-	# the current year is given as a four digigt number e.g. 2026 
-	currentYear = (str(currentTime.year))
-	# the current month is given as a number 1 to 12
-	currentMonth = writtenMonth[currentTime.month]
-	# the current day is given as a number 1 to 31
-	currentDay = str(currentTime.day)
-	currentHour = currentTime.hour
-	currentHour = zeroSuffix(currentHour)
-	currentMinute = currentTime.minute
-	currentMinute = zeroSuffix(currentMinute)
-	currentSecond = currentTime.second
-	currentSecond = zeroSuffix(currentSecond)
-	# the currentWeekday is given as a number 1 to 7
-	currentWeekday = currentTime.weekday()
-	# store the current time in the pubdate format 
-	# an example is Mon, 18, May, 2026, 12:30:0 GMT
-	rssPubdate = (LetterDay(currentWeekday) + ", " + currentDay + ", " + currentMonth + ", " + currentYear + ", " + currentHour + ":" + currentMinute + ":" + currentSecond + " GMT")
-
 	# a variable that gives the total number of lines in the rss.csv
 	totalRSSCSVEntries = 0
 	rssDateTuple = []	
@@ -661,15 +668,29 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 			#totalRSSCSVEntries = sum(1 for line in f)
 			rsscsvdata = csv.reader(f)
 			for row in rsscsvdata:
+				# check the row is in the correct format for pubdate
 				totalRSSCSVEntries += 1
 				latestRssMonth = writtenMonth.index(row[2].lstrip())
 				latestRssYear = int(row[3].lstrip())
 				rssDateTuple.append((latestRssMonth, latestRssYear))
 	else:	
-		# rss.csv does not exist
 		totalRSSCSVEntries = 0
+		# could ask right here about creating file and adding current date
+		print ("There is no rss.csv presently.") 
+		createNewRss = input ("Would you like to make one and add the current date? (y/n)")
+		if createNewRss == "y" or createNewRss == "Y": 
+			append = True
+		elif createNewRss == "n" or createNewRss == "N":
+			print ("no new rss.csv will be made.")		
+		else:
+			while createNewRss != "y" and createNewRss != "Y" and createNewRss != "n" and createNewRss != "N":
+				createNewRss = input ("please type y for year or n for no :")
+			if createNewRss == "y" or createNewRss == "Y":	
+				append = True
+			elif createNewRss == "n" or createNewRss == "N":
+				print ("no new rss.csv will be made.")		
 
-	# to check that the dicrectory containing the notes matches
+	# to check that the directory containing the notes matches
 	# the equivalant pubdate entries in the rss.csv 
 	# create an equivalent to the rssDateTuple for the notes in 
 	# the directory containing the notes 
@@ -706,7 +727,7 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 	# if there are no entries as rss.csv doesn't exist 
 	# then offer to add an entry by setting append to true  
 	if totalRSSCSVEntries == 0:
-		print ("there are no entries in rss.csv")
+		print ("Adding current date to rss.csv")
 		append = True
 	# else identify the year and month of each row and
 	# create a dictionary with a key of the string year-month
@@ -719,11 +740,22 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 			for row in rsscsvdata:
 				counter += 1
 				latestRssMonth = row[2].lstrip()
+				print("latestRssMonth -> ")
+				print(latestRssMonth)
 				latestRssYear = row[3].lstrip()
+				print("latestRssYear -> ")
+				print(latestRssYear)
 				allRSSentries[latestRssYear + "-" + str(writtenMonth.index(latestRssMonth))] = row
 				# if the last pubdate entry in the rss.csv is 
 				# this month and year then consider that 
 				# no more entries are required at present
+				currentTime = datetime.datetime.now(tz=ZoneInfo("Europe/London"))
+				timeZone = identifyTimeZone(currentTime)
+				# the current year is given as a four digigt number e.g. 2026 
+				currentYear = (str(currentTime.year))
+				# the current month is given as a number 1 to 12
+				currentMonth = writtenMonth[currentTime.month]
+				print (currentMonth)
 				if counter == totalRSSCSVEntries: 
 					if latestRssMonth == currentMonth and latestRssYear == currentYear:
 						print ("for the date: " +  latestRssYear + "-" + latestRssMonth + " there is already an entry in the rss feed")		
@@ -736,9 +768,8 @@ def createDictionaryForRSS(monthsDictionary, yearDictionary):
 	if append == True:
 		addDate = input("add today's date to the rss feed? (y/n)")
 		if addDate == "y" or addDate == "Y" or addDate == "yes" or addDate == "Yes":
-			print (str(rssPubdate))
 			with open("rss.csv", "a") as f:
-				f.write(str(rssPubdate))
+				f.write(createCurrentPubtime())
 				print("new time appended to rss")
 		else:
 			print ("no new date was added to rss")
