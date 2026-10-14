@@ -16,8 +16,6 @@ websiteDomain = cmsc.websiteDomain
 websiteURL = cmsc.websiteURL
 websiteEmail = cmsc.websiteEmail
 websiteDescription = cmsc.websiteDescription
-websiteSubheading1 = cmsc.websiteSubheading1
-websiteSubheading2 = cmsc.websiteSubheading2
 websiteMetaIndex = cmsc.websiteMetaIndex
 websiteLanguage = cmsc.websiteLanguage
 faviconURL = cmsc.faviconURL
@@ -975,8 +973,7 @@ def makeIndex():
 	<body>\
 	<div class="bodyIndex">\
 	<header><h1>'+ websiteName +'</h1></header>\
-	<h2>' + websiteSubheading1 + '</h2>\
-	<h2>' + websiteSubheading2 + '</h2>\
+	<h2>' + websiteDescription + '</h2>\
 	<nav class="indexMenu">\
 	<a href="' + str(latestYear) +'/index.html">Notes</a>\
 	<a href="'+ rssFileName +'">RSS</a>\
