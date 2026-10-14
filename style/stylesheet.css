@@ -28,19 +28,14 @@ body {
 }
 
 h1{
-	display: flex;
-	flex-direction: column;
-	align-items: center;
 	margin-top: 0.70em;
 	margin-bottom: 0.30em;
 } 
 
 h2{
-	display: flex;
-	flex-direction: column;
-	align-items: center;
 	margin-top: 0.10em;
 	margin-bottom: 0.10em;
+	text-wrap: balance;
 } 
 h3 > a {
 	display: flex;
@@ -65,6 +60,10 @@ a:any-link {
 blockquote {  
     padding: 1rem;
 	border: 1px solid red;
+}
+
+blockquote p{
+	line-height: 1.5em;
 }
 
 section {
@@ -102,15 +101,16 @@ p {
 }
 
 nav{
+	margin-top: 0.5em;
 	display: flex;
-	justify-content: space-around;
+	justify-content: center;
+	column-gap: 0.55em;
 }
 
 .bodyIndex{
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	justify-content: center;
 	text-align: center;
 }
 
@@ -121,6 +121,7 @@ nav{
 .indexMenu {
 	top-margin: 2em;
 	display: flex;
+	justify-content: center;
 	column-gap: 0.45em;
 }
 
