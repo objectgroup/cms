@@ -54,7 +54,7 @@ a:any-link {
 	color: var(--fg);
 	text-decoration: underline;
 	text-decoration-color: var(--accent);
-	text-decoration-thickness: 0.25ch;
+	text-decoration-thickness: 0.20ch;
 }
 
 blockquote {  
