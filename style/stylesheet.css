@@ -93,7 +93,7 @@ p {
 } 
 
 .breadcrumb li::after {
-	content: " >  ";
+	content: " &larr; ";
 }
 
 .breadcrumb li:last-child::after {
